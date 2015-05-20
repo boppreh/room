@@ -15,15 +15,18 @@ canvas {
     </head>
 
     <body>
-        <canvas id="canvas1" width=800 height=600></canvas>
-        <canvas id="canvas2" width=800 height=600></canvas>
+        <canvas id="canvas1" width=500 height=600></canvas>
+        <canvas id="canvas2" width=500 height=600></canvas>
+        <canvas id="canvas3" width=500 height=600></canvas>
         <script>
 "use strict";
 
 var canvas1 = document.getElementById("canvas1");
 var canvas2 = document.getElementById("canvas2");
+var canvas3 = document.getElementById("canvas3");
 var context1 = canvas1.getContext("2d");
 var context2 = canvas2.getContext("2d");
+var context3 = canvas3.getContext("2d");
 var screen_width = canvas1.width;
 var screen_height = canvas1.height;
 
@@ -154,7 +157,8 @@ function update(context, eye_distance) {
 
 function update_frame() {
     update(context1, -0.01);
-    update(context2, +0.01);
+    update(context2, 0);
+    update(context3, +0.01);
     window.requestAnimationFrame(update_frame);
 }
 window.requestAnimationFrame(update_frame);
