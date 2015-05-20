@@ -15,20 +15,23 @@ canvas {
     </head>
 
     <body>
-        <canvas id="canvas" width=800 height=600></canvas>
+        <canvas id="canvas1" width=800 height=600></canvas>
+        <canvas id="canvas2" width=800 height=600></canvas>
         <script>
 "use strict";
 
-var canvas = document.getElementById("canvas");
-var context = canvas.getContext("2d");
-var screen_width = canvas.width;
-var screen_height = canvas.height;
+var canvas1 = document.getElementById("canvas1");
+var canvas2 = document.getElementById("canvas2");
+var context1 = canvas1.getContext("2d");
+var context2 = canvas2.getContext("2d");
+var screen_width = canvas1.width;
+var screen_height = canvas1.height;
 
 var textures = {}
 function load(src, name) {
     var image = new Image();
     image.onload = function() {
-        textures[name] = context.createPattern(image, "repeat");
+        textures[name] = context1.createPattern(image, "repeat");
     }
     image.onerror = function() {
         alert("Failed to load texture " + name + " from " + src);
@@ -95,20 +98,20 @@ function move(angle, distance) {
         player_pos.y += dy
     }
 }
-function draw_wall(x, start, size) {
+function draw_wall(context, x, start, size) {
     //context.fillStyle = "rgb(20, " + size + ", " + size + ")";
     context.fillStyle = textures["wall"];
     context.fillRect(x, start, 1, size);
 }
-function draw_floor(x, end) {
+function draw_floor(context, x, end) {
     context.fillStyle = textures["floor"];
     context.fillRect(x, end, 1, screen_height - end);
 }
-function draw_ceiling(x, start) {
+function draw_ceiling(context, x, start) {
     context.fillStyle = textures["ceiling"];
     context.fillRect(x, 0, 1, start);
 }
-function update() {
+function update(context, eye_distance) {
     player_direction = player_direction % (Math.PI * 2);
     if (keys_pressed[37]) {
         // LEFT
@@ -137,28 +140,31 @@ function update() {
     context.clearRect(0, 0, screen_width, screen_height);
     for (var i = 0; i < screen_width; i++) {
         var angle = player_direction + (Math.PI / screen_width) * (i - screen_width / 2) * FOV;
-        var size = Math.floor(CELL_SIZE / cast(player_pos, angle, map));
+        var eye_pos = {x: Math.cos(player_direction + Math.PI / 2) * eye_distance + player_pos.x,
+                       y: Math.sin(player_direction + Math.PI / 2) * eye_distance + player_pos.y,}
+        var size = Math.floor(CELL_SIZE / cast(eye_pos, angle, map));
         var start = Math.ceil(screen_height / 2 - size / 2)
         var end = Math.floor(screen_height / 2 + size / 2)
-        draw_wall(i, start, size);
-        draw_ceiling(i, start);
-        draw_floor(i, end);
+        draw_wall(context, i, start, size);
+        draw_ceiling(context, i, start);
+        draw_floor(context, i, end);
     }
     context.fillText(player_pos.x + ", " + player_pos.y + " : " + player_direction, 15, 15);
 }
 
 function update_frame() {
-    update();
+    update(context1, -0.01);
+    update(context2, +0.01);
     window.requestAnimationFrame(update_frame);
 }
 window.requestAnimationFrame(update_frame);
-canvas.requestPointerLock = canvas.requestPointerLock ||
-                            canvas.mozRequestPointerLock ||
-                            canvas.webkitRequestPointerLock;
+canvas1.requestPointerLock = canvas1.requestPointerLock ||
+                             canvas1.mozRequestPointerLock ||
+                             canvas1.webkitRequestPointerLock;
 var MOUSE_SENSITIVITY = 0.003;
-canvas.onclick = function() {
-    canvas.requestPointerLock();
-    canvas.onmousemove = function(event) {
+canvas1.onclick = function() {
+    canvas1.requestPointerLock();
+    canvas1.onmousemove = function(event) {
         var movementX = event.mozMovementX || event.webkitMovementX || event.movementX;
         if (movementX) {
             player_direction += movementX * MOUSE_SENSITIVITY;
