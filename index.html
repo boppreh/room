@@ -18,10 +18,28 @@ canvas {
         <canvas id="canvas" width=800 height=600></canvas>
         <script>
 "use strict";
+
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
 var screen_width = canvas.width;
 var screen_height = canvas.height;
+
+var textures = {}
+function load(src, name) {
+    var image = new Image();
+    image.onload = function() {
+        textures[name] = context.createPattern(image, "repeat");
+    }
+    image.onerror = function() {
+        alert("Failed to load texture " + name + " from " + src);
+    }
+    image.src = src;
+    return image;
+}
+load("floor.jpg", "floor");
+load("ceiling.png", "ceiling");
+load("wall.jpg", "wall");
+
 
 var player_pos = {x: 1, y: 1};
 var player_direction = 0;
@@ -57,6 +75,7 @@ function cast(from, direction, map) {
     }
     return 1000;
 }
+
 var FOV = 0.1;
 var CELL_SIZE = 100;
 var MOVEMENT_SPEED = 0.03;
@@ -76,12 +95,17 @@ function move(angle, distance) {
         player_pos.y += dy
     }
 }
+function draw_wall(x, start, size) {
+    //context.fillStyle = "rgb(20, " + size + ", " + size + ")";
+    context.fillStyle = textures["wall"];
+    context.fillRect(x, start, 1, size);
+}
 function draw_floor(x, end) {
-    context.fillStyle = "rgb(200, 0, 0)";
+    context.fillStyle = textures["floor"];
     context.fillRect(x, end, 1, screen_height - end);
 }
 function draw_ceiling(x, start) {
-    context.fillStyle = "rgb(0, 0, 200)";
+    context.fillStyle = textures["ceiling"];
     context.fillRect(x, 0, 1, start);
 }
 function update() {
@@ -116,8 +140,7 @@ function update() {
         var size = Math.floor(CELL_SIZE / cast(player_pos, angle, map));
         var start = Math.ceil(screen_height / 2 - size / 2)
         var end = Math.floor(screen_height / 2 + size / 2)
-        context.fillStyle = "rgb(20, " + size + ", " + size + ")";
-        context.fillRect(i, start, 1, size);
+        draw_wall(i, start, size);
         draw_ceiling(i, start);
         draw_floor(i, end);
     }
