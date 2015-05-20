@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Room</title>
+        <style>
+body {
+    background-color: #333333;
+}
+
+canvas {
+    background-color: #EEEEEE;
+}
+        </style>
+    </head>
+
+    <body>
+        <canvas id="canvas" width=800 height=600></canvas>
+        <script>
+"use strict";
+var canvas = document.getElementById("canvas");
+var context = canvas.getContext("2d");
+var screen_width = canvas.width;
+var screen_height = canvas.height;
+
+var player_pos = {x: 1, y: 1};
+var player_direction = 0;
+var map = [
+[1, 1, 1, 1, 1, 1],
+[1, 0, 0, 0, 0, 1],
+[1, 0, 0, 1, 0, 1],
+[1, 0, 0, 0, 0, 1],
+[1, 0, 0, 0, 0, 1],
+[1, 1, 1, 1, 1, 1],
+];
+function cast(from, direction, map) {
+    var x = from.x;
+    var y = from.y;
+    var cos = Math.cos(direction);
+    var sin = Math.sin(direction);
+    var step_size = 1 / 1000;
+    while (1) {
+        var rx = Math.round(x);
+        var ry = Math.round(y);
+        if (rx < 0 || ry < 0 || ry >= map.length || rx >= map[0].length) {
+            break;
+        }
+        var cell = map[ry][rx];
+        if (cell != 0) {
+            var distance_x = x - from.x;
+            var distance_y = y - from.y;
+            return Math.sqrt(Math.pow(distance_x, 2) + Math.pow(distance_y, 2));
+        }
+        x += cos * step_size;
+        y += sin * step_size;
+        step_size *= 1.01;
+    }
+    return 1000;
+}
+var FOV = 0.1;
+var CELL_SIZE = 100;
+var MOVEMENT_SPEED = 0.03;
+var TURNING_SPEED = 0.02;
+var STRAFING_FACTOR = 0.3;
+
+var keys_pressed = {};
+window.onkeydown = function(event) { keys_pressed[event.which] = true; }
+window.onkeyup = function(event) { keys_pressed[event.which] = false; }
+function move(angle, distance) {
+    var dx = Math.cos(angle) * distance;
+    if (map[Math.round(player_pos.y)][Math.round(player_pos.x + dx)] == 0) {
+        player_pos.x += dx;
+    }
+    var dy = Math.sin(angle) * distance;
+    if (map[Math.round(player_pos.y + dy)][Math.round(player_pos.x)] == 0) {
+        player_pos.y += dy
+    }
+}
+function draw_floor(x, end) {
+    context.fillStyle = "rgb(200, 0, 0)";
+    context.fillRect(x, end, 1, screen_height - end);
+}
+function draw_ceiling(x, start) {
+    context.fillStyle = "rgb(0, 0, 200)";
+    context.fillRect(x, 0, 1, start);
+}
+function update() {
+    player_direction = player_direction % (Math.PI * 2);
+    if (keys_pressed[37]) {
+        // LEFT
+        player_direction -= TURNING_SPEED;
+    }
+    if (keys_pressed[38] || keys_pressed[87]) {
+        // UP or W
+        move(player_direction, MOVEMENT_SPEED);
+    }
+    if (keys_pressed[65]) {
+        // A
+        move(player_direction - Math.PI / 2, MOVEMENT_SPEED * STRAFING_FACTOR);
+    }
+    if (keys_pressed[68]) {
+        // D
+        move(player_direction + Math.PI / 2, MOVEMENT_SPEED * STRAFING_FACTOR);
+    }
+    if (keys_pressed[39]) {
+        // RIGHT
+        player_direction += TURNING_SPEED;
+    }
+    if (keys_pressed[40] || keys_pressed[83]) {
+        // DOWN or S
+        move(player_direction, -MOVEMENT_SPEED);
+    }
+    context.clearRect(0, 0, screen_width, screen_height);
+    for (var i = 0; i < screen_width; i++) {
+        var angle = player_direction + (Math.PI / screen_width) * (i - screen_width / 2) * FOV;
+        var size = Math.floor(CELL_SIZE / cast(player_pos, angle, map));
+        var start = Math.ceil(screen_height / 2 - size / 2)
+        var end = Math.floor(screen_height / 2 + size / 2)
+        context.fillStyle = "rgb(20, " + size + ", " + size + ")";
+        context.fillRect(i, start, 1, size);
+        draw_ceiling(i, start);
+        draw_floor(i, end);
+    }
+    context.fillText(player_pos.x + ", " + player_pos.y + " : " + player_direction, 15, 15);
+}
+
+function update_frame() {
+    update();
+    window.requestAnimationFrame(update_frame);
+}
+window.requestAnimationFrame(update_frame);
+canvas.requestPointerLock = canvas.requestPointerLock ||
+                            canvas.mozRequestPointerLock ||
+                            canvas.webkitRequestPointerLock;
+var MOUSE_SENSITIVITY = 0.003;
+canvas.onclick = function() {
+    canvas.requestPointerLock();
+    canvas.onmousemove = function(event) {
+        var movementX = event.mozMovementX || event.webkitMovementX || event.movementX;
+        if (movementX) {
+            player_direction += movementX * MOUSE_SENSITIVITY;
+        }
+    }
+}
+        </script>
+    </body>
+</html>
