@@ -15,20 +15,35 @@ canvas {
     </head>
 
     <body>
-        <canvas id="canvas" width=800 height=600></canvas>
+        <canvas id="canvas" width=200 height=200></canvas>
         <script>
 "use strict";
 
+function intmod(i, n) {
+    return ((Math.floor(i) % n) + n) % n;
+}
+
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
-var screen_width = canvas.width;
-var screen_height = canvas.height;
 
-var textures = {}
+var textures = {};
+var assets_loading = 0;
+var assets_ready = true;
 function load(src, name) {
     var image = new Image();
+    assets_loading++;
+    assets_ready = false;
     image.onload = function() {
-        textures[name] = context.createPattern(image, "repeat");
+        var tempCanvas = document.createElement("canvas");
+        tempCanvas.width = image.width;
+        tempCanvas.height = image.height;
+        var tempContext = tempCanvas.getContext("2d");
+        tempContext.drawImage(image, 0, 0);
+        var data = tempContext.getImageData(0, 0, image.width, image.height);
+        textures[name] = data;
+        //console.log(name, textures[name]);
+        assets_loading--;
+        assets_ready = assets_loading == 0;
     }
     image.onerror = function() {
         alert("Failed to load texture " + name + " from " + src);
@@ -36,9 +51,10 @@ function load(src, name) {
     image.src = src;
     return image;
 }
-load("floor.jpg", "floor");
-load("ceiling.png", "ceiling");
+//load("floor.jpg", "floor");
+//load("ceiling.png", "ceiling");
 load("wall.jpg", "wall");
+//load("chair.png", "chair");
 
 
 var player_pos = {x: 1, y: 1};
@@ -51,33 +67,55 @@ var map = [
 [1, 0, 0, 0, 0, 1],
 [1, 1, 1, 1, 1, 1],
 ];
-function cast(from, direction, map) {
-    var x = from.x;
-    var y = from.y;
-    var cos = Math.cos(direction);
-    var sin = Math.sin(direction);
-    var step_size = 1 / 1000;
-    while (1) {
-        var rx = Math.round(x);
-        var ry = Math.round(y);
-        if (rx < 0 || ry < 0 || ry >= map.length || rx >= map[0].length) {
-            break;
-        }
-        var cell = map[ry][rx];
-        if (cell != 0) {
-            var distance_x = x - from.x;
-            var distance_y = y - from.y;
-            return Math.sqrt(Math.pow(distance_x, 2) + Math.pow(distance_y, 2));
-        }
-        x += cos * step_size;
-        y += sin * step_size;
-        step_size *= 1.01;
+
+var FOV = 1;
+var CELL_SIZE = 100;
+
+var frame = context.createImageData(canvas.width, canvas.height);
+var frameCount = 0;
+function render() {
+    for (var i = 0; i < frame.data.length; i++) {
+        frame.data[i] = 0;
     }
-    return 1000;
+    var wall = textures["wall"];
+    var floor = textures["wall"];
+    for (var x = 0; x < frame.width; x++) {
+        var angle = player_direction + (x / frame.width - frame.width / 2) * FOV * Math.PI * 2;
+        var world_x = player_pos.x;
+        var world_y = player_pos.y;
+        var step_x = Math.cos(angle) / 100;
+        var step_y = Math.sin(angle) / 100;
+
+        for (var y = 0; y < frame.height; y++) {
+            var sx = intmod(world_x * floor.width, floor.width);
+            var sy = intmod(world_y * floor.height, floor.height);
+            var floorIndex = (sy * floor.width + sx) * 4;
+            var frameIndex = (y * frame.width + x) * 4;
+            frame.data[frameIndex + 0] = floor.data[floorIndex + 0];
+            frame.data[frameIndex + 1] = floor.data[floorIndex + 1];
+            frame.data[frameIndex + 2] = floor.data[floorIndex + 2];
+            frame.data[frameIndex + 3] = floor.data[floorIndex + 3];
+
+            world_x += step_x;
+            world_y += step_y;
+            step_x *= 1.01;
+            step_y *= 1.01;
+
+            var wx = Math.floor(world_x);
+            var wy = Math.floor(world_y);
+            if (map[wy][wx] != 0) {
+                var bottom = frame.height - y;
+                while (y++ < bottom) {
+                }
+                step_x *= -1;
+                step_y *= -1;
+            }
+        }
+    }
+    context.putImageData(frame, 0, 0);
+    context.fillText(frameCount++ + " " + player_pos.x + ", " + player_pos.y + " : " + player_direction, 15, 15);
 }
 
-var FOV = 0.1;
-var CELL_SIZE = 100;
 var MOVEMENT_SPEED = 0.03;
 var TURNING_SPEED = 0.02;
 var STRAFING_FACTOR = 0.3;
@@ -95,60 +133,33 @@ function move(angle, distance) {
         player_pos.y += dy
     }
 }
-function draw_wall(x, start, size) {
-    //context.fillStyle = "rgb(20, " + size + ", " + size + ")";
-    context.fillStyle = textures["wall"];
-    context.fillRect(x, start, 1, size);
-}
-function draw_floor(x, end) {
-    context.fillStyle = textures["floor"];
-    context.fillRect(x, end, 1, screen_height - end);
-}
-function draw_ceiling(x, start) {
-    context.fillStyle = textures["ceiling"];
-    context.fillRect(x, 0, 1, start);
-}
 function update() {
     player_direction = player_direction % (Math.PI * 2);
-    if (keys_pressed[37]) {
-        // LEFT
+    if (keys_pressed[37]) { // LEFT
         player_direction -= TURNING_SPEED;
     }
-    if (keys_pressed[38] || keys_pressed[87]) {
-        // UP or W
+    if (keys_pressed[38] || keys_pressed[87]) { // UP or W
         move(player_direction, MOVEMENT_SPEED);
     }
-    if (keys_pressed[65]) {
-        // A
+    if (keys_pressed[65]) { // A
         move(player_direction - Math.PI / 2, MOVEMENT_SPEED * STRAFING_FACTOR);
     }
-    if (keys_pressed[68]) {
-        // D
+    if (keys_pressed[68]) { // D
         move(player_direction + Math.PI / 2, MOVEMENT_SPEED * STRAFING_FACTOR);
     }
-    if (keys_pressed[39]) {
-        // RIGHT
+    if (keys_pressed[39]) { // RIGHT
         player_direction += TURNING_SPEED;
     }
-    if (keys_pressed[40] || keys_pressed[83]) {
-        // DOWN or S
+    if (keys_pressed[40] || keys_pressed[83]) { // DOWN or S
         move(player_direction, -MOVEMENT_SPEED);
     }
-    context.clearRect(0, 0, screen_width, screen_height);
-    for (var i = 0; i < screen_width; i++) {
-        var angle = player_direction + (Math.PI / screen_width) * (i - screen_width / 2) * FOV;
-        var size = Math.floor(CELL_SIZE / cast(player_pos, angle, map));
-        var start = Math.ceil(screen_height / 2 - size / 2)
-        var end = Math.floor(screen_height / 2 + size / 2)
-        draw_wall(i, start, size);
-        draw_ceiling(i, start);
-        draw_floor(i, end);
-    }
-    context.fillText(player_pos.x + ", " + player_pos.y + " : " + player_direction, 15, 15);
 }
 
 function update_frame() {
-    update();
+    if (assets_ready) {
+        update();
+        render();
+    }
     window.requestAnimationFrame(update_frame);
 }
 window.requestAnimationFrame(update_frame);
