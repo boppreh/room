@@ -105,8 +105,8 @@ function render() {
             step_x *= 1.01;
             step_y *= 1.01;
 
-            var wx = Math.floor(world_x);
-            var wy = Math.floor(world_y);
+            var wx = Math.round(world_x);
+            var wy = Math.round(world_y);
             if (map[wy][wx] != 0) {
                 break;
             }
