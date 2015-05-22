@@ -19,10 +19,6 @@ canvas {
         <script>
 "use strict";
 
-function intmod(i, n) {
-    return ((Math.floor(i) % n) + n) % n;
-}
-
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
 
@@ -74,8 +70,8 @@ var CELL_SIZE = 20;
 var frame = context.createImageData(canvas.width, canvas.height);
 var frameCount = 0;
 function draw_texture(texture, sx, sy, frame, dx, dy) {
-    sx = intmod(sx, texture.width);
-    sy = intmod(sy, texture.height);
+    sx = (sx % texture.width)|0;
+    sy = (sy % texture.height)|0;
     var textureIndex = (sy * texture.width + sx) * 4;
     var frameIndex = (dy * frame.width + dx) * 4;
     frame.data[frameIndex + 0] = texture.data[textureIndex + 0];
