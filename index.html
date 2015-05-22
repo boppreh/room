@@ -15,7 +15,7 @@ canvas {
     </head>
 
     <body>
-        <canvas id="canvas" width=200 height=200></canvas>
+        <canvas id="canvas" width=800 height=600></canvas>
         <script>
 "use strict";
 
@@ -51,7 +51,7 @@ function load(src, name) {
     image.src = src;
     return image;
 }
-//load("floor.jpg", "floor");
+load("floor.jpg", "floor");
 //load("ceiling.png", "ceiling");
 load("wall.jpg", "wall");
 //load("chair.png", "chair");
@@ -68,34 +68,36 @@ var map = [
 [1, 1, 1, 1, 1, 1],
 ];
 
-var FOV = 1;
+var FOV = 0.1;
 var CELL_SIZE = 100;
 
 var frame = context.createImageData(canvas.width, canvas.height);
 var frameCount = 0;
+function draw_texture(texture, sx, sy, frame, dx, dy) {
+    sx = intmod(sx, texture.width);
+    sy = intmod(sy, texture.height);
+    var textureIndex = (sy * texture.width + sx) * 4;
+    var frameIndex = (dy * frame.width + dx) * 4;
+    frame.data[frameIndex + 0] = texture.data[textureIndex + 0];
+    frame.data[frameIndex + 1] = texture.data[textureIndex + 1];
+    frame.data[frameIndex + 2] = texture.data[textureIndex + 2];
+    frame.data[frameIndex + 3] = texture.data[textureIndex + 3];
+}
 function render() {
     for (var i = 0; i < frame.data.length; i++) {
         frame.data[i] = 0;
     }
     var wall = textures["wall"];
-    var floor = textures["wall"];
+    var floor = textures["floor"];
     for (var x = 0; x < frame.width; x++) {
-        var angle = player_direction + (x / frame.width - frame.width / 2) * FOV * Math.PI * 2;
+        var angle = player_direction + (x / frame.width - 0.5) * FOV * Math.PI * 2;
         var world_x = player_pos.x;
         var world_y = player_pos.y;
         var step_x = Math.cos(angle) / 100;
         var step_y = Math.sin(angle) / 100;
 
         for (var y = 0; y < frame.height; y++) {
-            var sx = intmod(world_x * floor.width, floor.width);
-            var sy = intmod(world_y * floor.height, floor.height);
-            var floorIndex = (sy * floor.width + sx) * 4;
-            var frameIndex = (y * frame.width + x) * 4;
-            frame.data[frameIndex + 0] = floor.data[floorIndex + 0];
-            frame.data[frameIndex + 1] = floor.data[floorIndex + 1];
-            frame.data[frameIndex + 2] = floor.data[floorIndex + 2];
-            frame.data[frameIndex + 3] = floor.data[floorIndex + 3];
-
+            draw_texture(floor, world_x * floor.width, world_y * floor.height, frame, x, y);
             world_x += step_x;
             world_y += step_y;
             step_x *= 1.01;
