@@ -52,7 +52,7 @@ function load(src, name) {
     return image;
 }
 load("floor.jpg", "floor");
-//load("ceiling.png", "ceiling");
+load("ceiling.png", "ceiling");
 load("wall.jpg", "wall");
 //load("chair.png", "chair");
 
@@ -87,6 +87,7 @@ function render() {
     for (var i = 0; i < frame.data.length; i++) {
         frame.data[i] = 0;
     }
+    var ceiling = textures["ceiling"];
     var wall = textures["wall"];
     var floor = textures["floor"];
     for (var x = 0; x < frame.width; x++) {
@@ -97,7 +98,7 @@ function render() {
         var step_y = Math.sin(angle) / 100;
 
         for (var y = 0; y < frame.height; y++) {
-            draw_texture(floor, world_x * floor.width, world_y * floor.height, frame, x, y);
+            draw_texture(ceiling, world_x * floor.width, world_y * floor.height, frame, x, y);
             world_x += step_x;
             world_y += step_y;
             step_x *= 1.01;
@@ -106,12 +107,21 @@ function render() {
             var wx = Math.floor(world_x);
             var wy = Math.floor(world_y);
             if (map[wy][wx] != 0) {
-                var bottom = frame.height - y;
-                while (y++ < bottom) {
-                }
-                step_x *= -1;
-                step_y *= -1;
+                break;
             }
+        }
+        var bottom = frame.height - y;
+        while (y++ < bottom) {
+            draw_texture(wall, x, y, frame, x, y);
+        }
+        step_x *= -1;
+        step_y *= -1;
+        while (y++ < frame.height) {
+            draw_texture(floor, world_x * floor.width, world_y * floor.height, frame, x, y);
+            world_x += step_x;
+            world_y += step_y;
+            step_x *= 1.01;
+            step_y *= 1.01;
         }
     }
     context.putImageData(frame, 0, 0);
