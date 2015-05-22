@@ -94,7 +94,7 @@ function render() {
         var step_y = Math.sin(angle) / 100;
 
         var acceleration = 1.01;
-        for (var y = 0; y < frame.height; y++) {
+        for (var y = 0; y < frame.height / 2; y++) {
             draw_texture(ceiling, world_x * CELL_SIZE, world_y * CELL_SIZE, frame, x, y);
             draw_texture(floor, world_x * CELL_SIZE, world_y * CELL_SIZE, frame, x, frame.height - y);
             world_x += step_x;
