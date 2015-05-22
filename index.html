@@ -116,8 +116,11 @@ function render() {
         var bottom = frame.height - y;
         var wall_y = 0;
         var wall_y_step = wall.height / (frame.height - 2 * y);
+        var rest_x = world_x - Math.floor(world_x);
+        var rest_y = world_y - Math.floor(world_y);
+        var rest = Math.abs(rest_x - 0.5) > Math.abs(rest_y - 0.5) ? rest_x : rest_y;
         while (y++ < bottom) {
-            draw_texture(wall, (world_x - Math.floor(world_x)) * wall.width, wall_y, frame, x, y);
+            draw_texture(wall, rest * wall.width, wall_y, frame, x, y);
             wall_y += wall_y_step;
         }
     }
