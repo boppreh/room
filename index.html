@@ -136,7 +136,15 @@ function draw_minimap() {
         }
     }
     context.fillStyle = "rgb(255, 0, 0)";
+    context.strokeStyle = "rgb(255, 0, 0)";
+    context.lineWidth = 2;
     context.fillRect(20 + player_pos.x * 6, 20 + player_pos.y * 6, 5, 5);
+    context.beginPath();
+    context.moveTo(20 + player_pos.x * 6 + 3, 20 + player_pos.y * 6 + 3);
+    var dx = Math.cos(player_direction) * 6;
+    var dy = Math.sin(player_direction) * 6;
+    context.lineTo(20 + player_pos.x * 6 + 3 + dx, 20 + player_pos.y * 6 + 3 + dy);
+    context.stroke();
 }
 
 var MOVEMENT_SPEED = 0.03;
