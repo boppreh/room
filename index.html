@@ -103,7 +103,7 @@ function render() {
 
             var wx = (world_x+0.5)|0;
             var wy = (world_y+0.5)|0;
-            if (map[wy][wx] != 0) {
+            if (wx < 0 || wy < 0 || wy >= map.length || wx >= map[0].length || map[wy][wx] != 0) {
                 break;
             }
         }
