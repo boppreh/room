@@ -64,7 +64,7 @@ var map = [
 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ];
 
-var FOV = 1;
+var FOV = 0.1;
 var CELL_SIZE = 20;
 
 var frame = context.createImageData(canvas.width, canvas.height);
@@ -86,7 +86,8 @@ function render() {
     var wall = textures["wall"];
     var floor = textures["floor"];
     for (var x = 0; x < frame.width; x++) {
-        var angle = player_direction + Math.atan2(x / frame.width - 0.5, FOV);
+        var center_ratio = (x / frame.width - 0.5) * 2
+        var angle = player_direction + center_ratio * Math.PI * FOV;
         var world_x = player_pos.x;
         var world_y = player_pos.y;
         var step_x = Math.cos(angle) / 100;
