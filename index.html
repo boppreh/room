@@ -118,7 +118,7 @@ function render() {
         var start_y = screen_y;
         var rest_x = ray_x - Math.floor(ray_x);
         var rest_y = ray_y - Math.floor(ray_y);
-        var rest = Math.abs(rest_x - 0.5) > Math.abs(rest_y - 0.5) ? rest_x : rest_y
+        var rest = Math.abs(rest_x - 0.5) > Math.abs(rest_y - 0.5) ? rest_x : rest_y;
         var wall_x = (rest * wall.width)|0;
         var wall_y = 0;
         var wall_y_step = wall.height / (frame.height - 2 * start_y);
