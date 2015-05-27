@@ -194,11 +194,11 @@ window.onkeydown = function(event) { keys_pressed[event.which] = true; }
 window.onkeyup = function(event) { keys_pressed[event.which] = false; }
 function move(angle, distance) {
     var dx = Math.cos(angle) * distance;
-    if (is_walkable(map, player_pos.y, player_pos.x + dx)) {
+    if (is_walkable(map, player_pos.x + dx, player_pos.y)) {
         player_pos.x += dx;
     }
     var dy = Math.sin(angle) * distance;
-    if (is_walkable(map, player_pos.y + dy, player_pos.x)) {
+    if (is_walkable(map, player_pos.x, player_pos.y + dy)) {
         player_pos.y += dy
     }
 }
