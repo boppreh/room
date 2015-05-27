@@ -64,7 +64,7 @@ var map = [
 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ];
 
-var FOV = 0.1;
+var FOV = 0.1 * Math.PI;
 var CELL_SIZE = canvas.width;
 
 var frame = context.createImageData(canvas.width, canvas.height);
@@ -88,7 +88,7 @@ function render() {
     var floor = textures["floor"];
     for (var screen_x = 0; screen_x < frame.width; screen_x++) {
         var center_ratio = (screen_x / frame.width - 0.5) * 2
-        var angle = player_direction + center_ratio * Math.PI * FOV;
+        var angle = player_direction + center_ratio * FOV;
 
         var sin = Math.sin(angle);
         var cos = Math.cos(angle);
