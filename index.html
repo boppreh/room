@@ -89,17 +89,22 @@ function render() {
         var center_ratio = (screen_x / frame.width - 0.5) * 2
         var angle = player_direction + center_ratio * Math.PI * FOV;
 
-        var step_size = 0.01;
         var sin = Math.sin(angle);
         var cos = Math.cos(angle);
         var ray_x = player_pos.x;
         var ray_y = player_pos.y;
-        var distance = 0;
-        while (map[Math.round(ray_y)][Math.round(ray_x)] === 0) {
-            ray_x += cos * step_size;
-            ray_y += sin * step_size;
-            distance += step_size;
-            step_size *= 1.01;
+        var distance = 0.3;
+        for (var screen_y = 0; map[Math.round(ray_y)][Math.round(ray_x)] === 0; screen_y++) {
+            ray_x = player_pos.x + cos * distance;
+            ray_y = player_pos.y + sin * distance;
+            var rest_x = ray_x - Math.floor(ray_x);
+            var rest_y = ray_y - Math.floor(ray_y);
+            draw_texture(ceiling, rest_x * ceiling.width, rest_y * ceiling.height, frame, screen_x, screen_y);
+            draw_texture(floor, rest_x * floor.width, rest_y * floor.height, frame, screen_x, frame.height - screen_y);
+            // This is the derivative of the distance with respect to screen_y.
+            // The original was CELL_SIZE / (frame.height - 2 * screen_y) and
+            // was found by isolating the distance from the wall position code.
+            distance += 2 * CELL_SIZE / Math.pow(frame.height - 2 * screen_y, 2);
         }
 
         var wall_size = CELL_SIZE / distance;
@@ -113,25 +118,6 @@ function render() {
         for (var screen_y = start_y; screen_y < frame.height - start_y; screen_y++) {
             draw_texture(wall, wall_x, wall_y, frame, screen_x, screen_y);
             wall_y += wall_y_step;
-        }
-        /*
-        y = h/2 - (CELL_SIZE / d)/2
-        y = h/2 - CELL_SIZE / d
-        y*2 = h - CELL_SIZE / d
-        2y - h = -CELL_SIZE / d
-        (2y - h)/(-CELL_SIZE) = 1 / d
-        (h - 2y)/CELL_SIZE = 1 / d
-        CELL_SIZE/(h - 2y) = d
-        */
-
-        for (var screen_y = 0; screen_y < start_y; screen_y++) {
-            var distance = CELL_SIZE / (frame.height - 2 * screen_y);
-            var pos_x = player_pos.x + cos * distance;
-            var pos_y = player_pos.y + sin * distance;
-            var rest_x = pos_x - Math.floor(pos_x);
-            var rest_y = pos_y - Math.floor(pos_y);
-            draw_texture(ceiling, rest_x * ceiling.width, rest_y * ceiling.height, frame, screen_x, screen_y);
-            draw_texture(floor, rest_x * floor.width, rest_y * floor.height, frame, screen_x, frame.height - screen_y);
         }
     }
     context.putImageData(frame, 0, 0);
