@@ -69,8 +69,6 @@ var CELL_SIZE = 200;
 
 var frame = context.createImageData(canvas.width, canvas.height);
 function draw_texture(texture, sx, sy, frame, dx, dy) {
-    sx = (sx|0 % texture.width);
-    sy = (sy|0 % texture.height);
     var textureIndex = (sy * texture.width + sx) * 4;
     var frameIndex = (dy * frame.width + dx) * 4;
     frame.data[frameIndex + 0] = texture.data[textureIndex + 0];
@@ -97,10 +95,10 @@ function render() {
         for (var screen_y = 0; map[Math.round(ray_y)][Math.round(ray_x)] === 0; screen_y++) {
             ray_x = player_pos.x + cos * distance;
             ray_y = player_pos.y + sin * distance;
-            var rest_x = ray_x - Math.floor(ray_x);
-            var rest_y = ray_y - Math.floor(ray_y);
-            draw_texture(ceiling, rest_x * ceiling.width, rest_y * ceiling.height, frame, screen_x, screen_y);
-            draw_texture(floor, rest_x * floor.width, rest_y * floor.height, frame, screen_x, frame.height - screen_y);
+            var rest_x = ray_x - (ray_x|0);
+            var rest_y = ray_y - (ray_y|0);
+            draw_texture(ceiling, (rest_x * ceiling.width)|0, (rest_y * ceiling.height)|0, frame, screen_x, screen_y);
+            draw_texture(floor, (rest_x * floor.width)|0, (rest_y * floor.height)|0, frame, screen_x, frame.height - screen_y);
             // This is the derivative of the distance with respect to screen_y.
             // The original was CELL_SIZE / (frame.height - 2 * screen_y) and
             // was found by isolating the distance from the wall position code.
@@ -112,11 +110,11 @@ function render() {
         var rest_x = ray_x - Math.floor(ray_x);
         var rest_y = ray_y - Math.floor(ray_y);
         var rest = Math.abs(rest_x - 0.5) > Math.abs(rest_y - 0.5) ? rest_x : rest_y
-        var wall_x = rest * wall.width;
+        var wall_x = (rest * wall.width)|0;
         var wall_y = 0;
         var wall_y_step = wall.height / wall_size;
         for (var screen_y = start_y; screen_y < frame.height - start_y; screen_y++) {
-            draw_texture(wall, wall_x, wall_y, frame, screen_x, screen_y);
+            draw_texture(wall, wall_x, wall_y|0, frame, screen_x, screen_y);
             wall_y += wall_y_step;
         }
     }
