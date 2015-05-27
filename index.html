@@ -95,7 +95,6 @@ function render() {
         var ray_x = player_pos.x;
         var ray_y = player_pos.y;
         var distance = 1.0;
-        for (var screen_y = 0; map[Math.round(ray_y)][Math.round(ray_x)] === 0; screen_y++) {
 
         for (var screen_y = 0; is_walkable(map, ray_x, ray_y); screen_y++) {
             var rest_x = ray_x - (ray_x|0);
