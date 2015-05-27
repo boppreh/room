@@ -96,7 +96,7 @@ function render() {
             var rest_x = ray_x - (ray_x|0);
             var rest_y = ray_y - (ray_y|0);
             draw_texture(ceiling, (rest_x * ceiling.width)|0, (rest_y * ceiling.height)|0, frame, screen_x, screen_y);
-            draw_texture(floor, (rest_x * floor.width)|0, (rest_y * floor.height)|0, frame, screen_x, frame.height - screen_y);
+            draw_texture(floor, (rest_x * floor.width)|0, (rest_y * floor.height)|0, frame, screen_x, frame.height - screen_y - 1);
             // This is the derivative of the distance with respect to screen_y.
             // The original was CELL_SIZE / (frame.height - 2 * screen_y) and
             // was found by isolating the distance from the wall position code.
@@ -105,14 +105,13 @@ function render() {
             ray_y = player_pos.y + sin * distance;
         }
 
-        var wall_size = CELL_SIZE / distance;
-        var start_y = Math.round(frame.height / 2 - wall_size / 2);
+        var start_y = screen_y;
         var rest_x = ray_x - Math.floor(ray_x);
         var rest_y = ray_y - Math.floor(ray_y);
         var rest = Math.abs(rest_x - 0.5) > Math.abs(rest_y - 0.5) ? rest_x : rest_y
         var wall_x = (rest * wall.width)|0;
         var wall_y = 0;
-        var wall_y_step = wall.height / wall_size;
+        var wall_y_step = wall.height / (frame.height - 2 * start_y);
         for (var screen_y = start_y; screen_y < frame.height - start_y; screen_y++) {
             draw_texture(wall, wall_x, wall_y|0, frame, screen_x, screen_y);
             wall_y += wall_y_step;
@@ -172,7 +171,7 @@ function draw_minimap() {
     context.stroke();
 }
 
-var MOVEMENT_SPEED = 0.10;
+var MOVEMENT_SPEED = 0.03;
 var TURNING_SPEED = 0.02;
 var STRAFING_FACTOR = 0.3;
 
