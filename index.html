@@ -76,6 +76,9 @@ function draw_texture(texture, sx, sy, frame, dx, dy) {
     frame.data[frameIndex + 2] = texture.data[textureIndex + 2];
     frame.data[frameIndex + 3] = texture.data[textureIndex + 3];
 }
+function is_walkable(map, x, y) {
+    return map[Math.round(y)][Math.round(x)] === 0
+}
 function render() {
     for (var i = 0; i < frame.data.length; i++) {
         frame.data[i] = 0;
@@ -93,6 +96,8 @@ function render() {
         var ray_y = player_pos.y;
         var distance = 1.0;
         for (var screen_y = 0; map[Math.round(ray_y)][Math.round(ray_x)] === 0; screen_y++) {
+
+        for (var screen_y = 0; is_walkable(map, ray_x, ray_y); screen_y++) {
             var rest_x = ray_x - (ray_x|0);
             var rest_y = ray_y - (ray_y|0);
             // This is the derivative of the distance with respect to screen_y.
@@ -189,11 +194,11 @@ window.onkeydown = function(event) { keys_pressed[event.which] = true; }
 window.onkeyup = function(event) { keys_pressed[event.which] = false; }
 function move(angle, distance) {
     var dx = Math.cos(angle) * distance;
-    if (map[Math.round(player_pos.y)][Math.round(player_pos.x + dx)] == 0) {
+    if (is_walkable(map, player_pos.y, player_pos.x + dx)) {
         player_pos.x += dx;
     }
     var dy = Math.sin(angle) * distance;
-    if (map[Math.round(player_pos.y + dy)][Math.round(player_pos.x)] == 0) {
+    if (is_walkable(map, player_pos.y + dy, player_pos.x)) {
         player_pos.y += dy
     }
 }
