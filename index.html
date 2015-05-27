@@ -93,8 +93,6 @@ function render() {
         var ray_y = player_pos.y;
         var distance = 0.3;
         for (var screen_y = 0; map[Math.round(ray_y)][Math.round(ray_x)] === 0; screen_y++) {
-            ray_x = player_pos.x + cos * distance;
-            ray_y = player_pos.y + sin * distance;
             var rest_x = ray_x - (ray_x|0);
             var rest_y = ray_y - (ray_y|0);
             draw_texture(ceiling, (rest_x * ceiling.width)|0, (rest_y * ceiling.height)|0, frame, screen_x, screen_y);
@@ -103,10 +101,12 @@ function render() {
             // The original was CELL_SIZE / (frame.height - 2 * screen_y) and
             // was found by isolating the distance from the wall position code.
             distance += 2 * CELL_SIZE / Math.pow(frame.height - 2 * screen_y, 2);
+            ray_x = player_pos.x + cos * distance;
+            ray_y = player_pos.y + sin * distance;
         }
 
         var wall_size = CELL_SIZE / distance;
-        var start_y = Math.floor(frame.height / 2 - wall_size / 2);
+        var start_y = Math.round(frame.height / 2 - wall_size / 2);
         var rest_x = ray_x - Math.floor(ray_x);
         var rest_y = ray_y - Math.floor(ray_y);
         var rest = Math.abs(rest_x - 0.5) > Math.abs(rest_y - 0.5) ? rest_x : rest_y
